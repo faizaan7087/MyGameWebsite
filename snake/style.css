@@ -9,7 +9,7 @@ body {
     min-height: 100vh;
     margin: 0;
     font-size: 14px;
-    overflow: hidden; /* Prevents bounce scroll on mobile */
+    overflow: hidden;
 }
 
 .container {
@@ -25,6 +25,12 @@ body {
 /* --- Game Container --- */
 .game-container {
     text-align: center;
+}
+
+.game-board-wrapper {
+    position: relative;
+    width: 400px;
+    height: 400px;
 }
 
 .header {
@@ -49,23 +55,16 @@ h1 {
     display: grid;
     grid-template-rows: repeat(20, 1fr);
     grid-template-columns: repeat(20, 1fr);
-    width: 400px;
-    height: 400px;
+    width: 100%;
+    height: 100%;
     background-color: #000;
     border: 5px solid #4caf50;
     position: relative;
     box-shadow: 0 0 20px #4caf50;
 }
 
-.snake {
-    background-color: #4caf50;
-    border: 1px solid #1a1a1a;
-}
-
-.food {
-    background-color: #ffeb3b;
-    border-radius: 50%;
-}
+.snake { background-color: #4caf50; border: 1px solid #1a1a1a; }
+.food { background-color: #ffeb3b; border-radius: 50%; }
 
 /* --- Screens (Start/Game Over) --- */
 .screen {
@@ -83,16 +82,8 @@ h1 {
     color: #fff;
     z-index: 10;
 }
-
-.screen h2 {
-    font-size: 32px;
-    margin-bottom: 20px;
-    color: #4caf50;
-}
-
-.screen p {
-    margin-bottom: 30px;
-}
+.screen h2 { font-size: 32px; margin-bottom: 20px; color: #4caf50; }
+.screen p { margin-bottom: 30px; }
 
 .btn {
     background-color: #4caf50;
@@ -106,10 +97,7 @@ h1 {
     transition: all 0.1s ease;
     margin-top: 10px;
 }
-
-.btn:hover {
-    background-color: #66bb6a;
-}
+.btn:hover { background-color: #66bb6a; }
 
 #score-form input {
     width: 80%;
@@ -125,45 +113,25 @@ h1 {
 
 /* --- Leaderboard --- */
 .leaderboard-container {
+    /* THIS IS THE KEY CHANGE: HIDDEN BY DEFAULT */
+    display: none; 
     width: 300px;
     background-color: #000;
     border: 5px solid #4caf50;
     padding: 20px;
     box-shadow: 0 0 20px #4caf50;
 }
-
-.leaderboard-container h2 {
-    text-align: center;
-    margin-top: 0;
-    color: #4caf50;
-}
-
-#leaderboard-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    height: 350px;
-    overflow-y: auto;
-}
-
-#leaderboard-list li {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px dashed #4caf50;
-}
-
-#leaderboard-list li:last-child {
-    border-bottom: none;
-}
-
+.leaderboard-container h2 { text-align: center; margin-top: 0; color: #4caf50; }
+#leaderboard-list { list-style: none; padding: 0; margin: 0; height: 350px; overflow-y: auto; }
+#leaderboard-list li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #4caf50; }
+#leaderboard-list li:last-child { border-bottom: none; }
 .rank { flex-basis: 15%; color: #ffeb3b; }
 .name { flex-basis: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .score { flex-basis: 30%; text-align: right; }
 
 /* --- Mobile Controls --- */
 #mobile-controls {
-    display: none; /* Hidden by default */
+    display: none;
     flex-direction: column;
     align-items: center;
     position: fixed;
@@ -172,12 +140,7 @@ h1 {
     transform: translateX(-50%);
     z-index: 100;
 }
-
-.control-row {
-    display: flex;
-    justify-content: center;
-}
-
+.control-row { display: flex; justify-content: center; }
 .control-btn {
     background-color: rgba(76, 175, 80, 0.5);
     border: 2px solid rgba(240, 240, 240, 0.7);
@@ -194,44 +157,11 @@ h1 {
     -webkit-user-select: none;
 }
 
-/* Show mobile controls only on small screens */
+/* Mobile Layout */
 @media (max-width: 768px) {
-    body {
-        /* IMPORTANT: Allow scrolling on mobile to see everything */
-        overflow: auto; 
-    }
-
-    .container {
-        /* This is the key: stack the game and leaderboard vertically */
-        flex-direction: column; 
-        align-items: center; /* Center them horizontally */
-        padding: 10px;
-        gap: 30px; /* Adds nice spacing between the game and leaderboard */
-    }
-
-    #mobile-controls {
-        /* This makes the on-screen buttons visible */
-        display: flex;
-    }
-
-    .leaderboard-container {
-        /* Make sure it's visible and fits the screen */
-        display: block; 
-        width: 90%; /* Use most of the screen width */
-    }
-
-    #leaderboard-list {
-        /* Give the list a max height to prevent it from being huge */
-        max-height: 300px;
-    }
-    
-    /* Make the game board responsive to the screen size */
-    #game-board,
-    .game-board-wrapper {
-        width: 90vw;  /* 90% of the viewport width */
-        height: 90vw; /* 90% of the viewport width, keeping it square */
-        max-width: 400px;  /* But don't let it get bigger than 400px */
-        max-height: 400px;
-    }
+    body { overflow: auto; }
+    .container { flex-direction: column; align-items: center; padding: 10px; gap: 30px; }
+    #mobile-controls { display: flex; }
+    .leaderboard-container { width: 90%; }
+    .game-board-wrapper, #game-board { width: 90vw; height: 90vw; max-width: 400px; max-height: 400px; }
 }
-
