@@ -5,18 +5,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let supabaseClient;
     try {
         const { createClient } = supabase;
-        // Your actual URL and Key are used here
         const supabaseUrl = 'https://fzxgtneqlqdcphkezaps.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6eGd0bmVxbHFkY3Boa2V6YXBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1NDAzMDQsImV4cCI6MjA3NDExNjMwNH0.oR-0AXdWwNLAgTIBQCe_9ss0Q_mTL0N9nR33D0_vHSo';
         supabaseClient = createClient(supabaseUrl, supabaseKey);
     } catch (e) {
-        console.error("CRITICAL ERROR: Supabase library not found. Make sure the Supabase script tag is in your HTML file before this script.js file.", e);
-        alert("CRITICAL ERROR: Cannot connect to database. Check console (F12) for details.");
-        return; // Stop the script if Supabase isn't loaded
+        console.error("CRITICAL ERROR: Supabase library not found.", e);
+        alert("CRITICAL ERROR: Cannot connect to database.");
+        return;
     }
     // -----------------------------
 
-    // --- DOM ELEMENT SELECTION (Using the correct ID: game-board) ---
+    // --- DOM ELEMENT SELECTION ---
     const gameBoard = document.getElementById('game-board');
     const scoreDisplay = document.getElementById('score-display');
     const startScreen = document.getElementById('start-screen');
@@ -32,18 +31,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const downBtn = document.getElementById('down-btn');
     const leftBtn = document.getElementById('left-btn');
     const rightBtn = document.getElementById('right-btn');
+    // NEW: Get the leaderboard container itself
+    const leaderboardContainer = document.querySelector('.leaderboard-container');
+
 
     // --- GAME VARIABLES ---
     const gridSize = 20;
     let snake, food, direction, score, gameInterval, gameStarted;
 
-    // --- GAME LOGIC (Using Divs, not Canvas) ---
+    // --- GAME LOGIC ---
     function draw() {
         gameBoard.innerHTML = '';
         drawSnake();
         drawFood();
     }
-
     function drawSnake() {
         snake.forEach(segment => {
             const el = document.createElement('div');
@@ -53,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
             gameBoard.appendChild(el);
         });
     }
-
     function drawFood() {
         const el = document.createElement('div');
         el.style.gridRowStart = food.y;
@@ -61,14 +61,12 @@ document.addEventListener('DOMContentLoaded', () => {
         el.classList.add('food');
         gameBoard.appendChild(el);
     }
-
     function generateFood() {
         food = { x: Math.floor(Math.random() * gridSize) + 1, y: Math.floor(Math.random() * gridSize) + 1 };
         while (snake.some(s => s.x === food.x && s.y === food.y)) {
             food = { x: Math.floor(Math.random() * gridSize) + 1, y: Math.floor(Math.random() * gridSize) + 1 };
         }
     }
-
     function move() {
         const head = { ...snake[0] };
         if (direction === 'up') head.y--;
@@ -84,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
             snake.pop();
         }
     }
-
     function checkCollision() {
         const head = snake[0];
         if (head.x < 1 || head.x > gridSize || head.y < 1 || head.y > gridSize || snake.slice(1).some(s => s.x === head.x && s.y === head.y)) {
@@ -93,7 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return false;
     }
-
     function gameLoop() {
         if (!gameStarted) return;
         move();
@@ -101,7 +97,11 @@ document.addEventListener('DOMContentLoaded', () => {
         draw();
     }
 
+    // --- GAME FLOW (WITH LEADERBOARD VISIBILITY CHANGES) ---
     function startGame() {
+        // NEW: Hide leaderboard when game starts
+        leaderboardContainer.style.display = 'none';
+
         gameStarted = true;
         startScreen.style.display = 'none';
         gameOverScreen.style.display = 'none';
@@ -116,6 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function endGame() {
+        // NEW: Show leaderboard when game ends
+        leaderboardContainer.style.display = 'block';
+
         gameStarted = false;
         clearInterval(gameInterval);
         finalScoreDisplay.textContent = score;
@@ -163,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- EVENT LISTENERS (ALL CORRECTLY CONNECTED) ---
+    // --- EVENT LISTENERS ---
     document.addEventListener('keydown', (event) => {
         const keyMap = { 'ArrowUp': 'up', 'ArrowDown': 'down', 'ArrowLeft': 'left', 'ArrowRight': 'right' };
         const newDirection = keyMap[event.key];
@@ -179,5 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     scoreForm.addEventListener('submit', handleScoreSubmit);
 
     // --- INITIAL LOAD ---
+    // NEW: Show leaderboard on initial page load
+    leaderboardContainer.style.display = 'block';
     fetchLeaderboard();
 });
