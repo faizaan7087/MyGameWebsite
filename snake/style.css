@@ -200,7 +200,7 @@ h1 {
         display: flex;
     }
     .leaderboard-container {
-        display: none; /* Hide leaderboard on small screens to save space */
+        display: flex; /* Hide leaderboard on small screens to save space */
     }
     .container {
         padding: 5px;
