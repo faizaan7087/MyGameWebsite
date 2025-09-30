@@ -197,34 +197,41 @@ h1 {
 /* Show mobile controls only on small screens */
 @media (max-width: 768px) {
     body {
-        /* Allow scrolling on mobile to see the leaderboard */
+        /* IMPORTANT: Allow scrolling on mobile to see everything */
         overflow: auto; 
     }
+
     .container {
-        /* Stack game and leaderboard vertically */
+        /* This is the key: stack the game and leaderboard vertically */
         flex-direction: column; 
-        align-items: center;
+        align-items: center; /* Center them horizontally */
         padding: 10px;
+        gap: 30px; /* Adds nice spacing between the game and leaderboard */
     }
+
     #mobile-controls {
+        /* This makes the on-screen buttons visible */
         display: flex;
     }
+
     .leaderboard-container {
-        /* THIS IS THE FIX: We ensure it is VISIBLE */
+        /* Make sure it's visible and fits the screen */
         display: block; 
-        margin-top: 30px; /* Add some space above the leaderboard */
-        width: 90%; /* Make it wider on mobile */
+        width: 90%; /* Use most of the screen width */
     }
-    #game-board {
-        width: 95vw;
-        height: 95vw;
-        max-width: 400px;
-        max-height: 400px;
+
+    #leaderboard-list {
+        /* Give the list a max height to prevent it from being huge */
+        max-height: 300px;
     }
+    
+    /* Make the game board responsive to the screen size */
+    #game-board,
     .game-board-wrapper {
-        width: 95vw;
-        height: 95vw;
-        max-width: 400px;
+        width: 90vw;  /* 90% of the viewport width */
+        height: 90vw; /* 90% of the viewport width, keeping it square */
+        max-width: 400px;  /* But don't let it get bigger than 400px */
         max-height: 400px;
     }
 }
+
