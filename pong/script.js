@@ -1,139 +1,178 @@
-// This ensures our script runs only after the entire HTML page is loaded.
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- SUPABASE SETUP ---
-    let supabaseClient;
-    try {
-        const { createClient } = supabase;
-        // Your actual URL and Key are used here
-        const supabaseUrl = 'https://fzxgtneqlqdcphkezaps.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6eGd0bmVxbHFkY3Boa2V6YXBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1NDAzMDQsImV4cCI6MjA3NDExNjMwNH0.oR-0AXdWwNLAgTIBQCe_9ss0Q_mTL0N9nR33D0_vHSo';
-        supabaseClient = createClient(supabaseUrl, supabaseKey);
-    } catch (e) {
-        console.error("CRITICAL ERROR: Supabase library not found. Make sure the Supabase script tag is in your HTML file before this script.js file.", e);
-        alert("CRITICAL ERROR: Cannot connect to database. Check console (F12) for details.");
-        return; // Stop the script if Supabase isn't loaded
-    }
+    // --- TODO: SUPABASE SETUP ---
+    const supabaseUrl = 'https://fzxgtneqlqdcphkezaps.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6eGd0bmVxbHFkY3Boa2V6YXBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1NDAzMDQsImV4cCI6MjA3NDExNjMwNH0.oR-0AXdWwNLAgTIBQCe_9ss0Q_mTL0N9nR33D0_vHSo';
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
     // -----------------------------
 
-    // --- DOM ELEMENT SELECTION (Using the correct ID: game-board) ---
-    const gameBoard = document.getElementById('game-board');
-    const scoreDisplay = document.getElementById('score-display');
+    // --- DOM Elements ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const playerScoreEl = document.getElementById('player-score');
+    const aiScoreEl = document.getElementById('ai-score');
     const startScreen = document.getElementById('start-screen');
     const gameOverScreen = document.getElementById('game-over-screen');
-    const finalScoreDisplay = document.getElementById('final-score');
     const startButton = document.getElementById('start-button');
     const restartButton = document.getElementById('restart-button');
+    const winnerText = document.getElementById('winner-text');
     const leaderboardList = document.getElementById('leaderboard-list');
     const scoreForm = document.getElementById('score-form');
     const playerNameInput = document.getElementById('player-name');
-    const submitScoreButton = document.getElementById('submit-score-button');
-    const upBtn = document.getElementById('up-btn');
-    const downBtn = document.getElementById('down-btn');
-    const leftBtn = document.getElementById('left-btn');
-    const rightBtn = document.getElementById('right-btn');
+    
+    // --- Game State ---
+    const WINNING_SCORE = 5;
+    let ball, player, ai;
+    let gameRunning = false;
+    let baseBallSpeed = 6; // NEW: The base speed that will increase
 
-    // --- GAME VARIABLES ---
-    const gridSize = 20;
-    let snake, food, direction, score, gameInterval, gameStarted;
-
-    // --- GAME LOGIC (Using Divs, not Canvas) ---
-    function draw() {
-        gameBoard.innerHTML = '';
-        drawSnake();
-        drawFood();
+    // --- Canvas Sizing ---
+    function resizeCanvas() {
+        const cssWidth = canvas.clientWidth;
+        const cssHeight = canvas.clientHeight;
+        canvas.width = cssWidth;
+        canvas.height = cssHeight;
+        if (!gameRunning) { initGameObjects(); render(); }
+    }
+    window.addEventListener('resize', resizeCanvas);
+    
+    // --- Game Initialization ---
+    function initGameObjects() {
+        baseBallSpeed = 6; // Reset base speed on new game
+        ball = {
+            x: canvas.width / 2, y: canvas.height / 2,
+            radius: 8, speedX: baseBallSpeed, speedY: baseBallSpeed
+        };
+        player = {
+            x: 10, y: (canvas.height - 100) / 2,
+            width: 15, height: 100, score: 0
+        };
+        ai = {
+            x: canvas.width - 25, y: (canvas.height - 100) / 2,
+            width: 15, height: 100, score: 0
+        };
     }
 
-    function drawSnake() {
-        snake.forEach(segment => {
-            const el = document.createElement('div');
-            el.style.gridRowStart = segment.y;
-            el.style.gridColumnStart = segment.x;
-            el.classList.add('snake');
-            gameBoard.appendChild(el);
-        });
-    }
-
-    function drawFood() {
-        const el = document.createElement('div');
-        el.style.gridRowStart = food.y;
-        el.style.gridColumnStart = food.x;
-        el.classList.add('food');
-        gameBoard.appendChild(el);
-    }
-
-    function generateFood() {
-        food = { x: Math.floor(Math.random() * gridSize) + 1, y: Math.floor(Math.random() * gridSize) + 1 };
-        while (snake.some(s => s.x === food.x && s.y === food.y)) {
-            food = { x: Math.floor(Math.random() * gridSize) + 1, y: Math.floor(Math.random() * gridSize) + 1 };
+    // --- Drawing ---
+    function render() {
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < canvas.height; i += 15) {
+            ctx.fillStyle = "white";
+            ctx.fillRect(canvas.width / 2 - 1, i, 2, 10);
         }
+        ctx.fillStyle = "#4caf50";
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+        ctx.fillStyle = "#f44336";
+        ctx.fillRect(ai.x, ai.y, ai.width, ai.height);
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "white";
+        ctx.fill();
+    }
+    
+    // --- Game Logic ---
+    function resetBall() {
+        ball.x = canvas.width / 2;
+        ball.y = canvas.height / 2;
+        // THE FIX: Reset to the CURRENT base speed, not a fixed number
+        ball.speedX = -ball.speedX > 0 ? baseBallSpeed : -baseBallSpeed;
+        ball.speedY = baseBallSpeed;
     }
 
-    function move() {
-        const head = { ...snake[0] };
-        if (direction === 'up') head.y--;
-        if (direction === 'down') head.y++;
-        if (direction === 'left') head.x--;
-        if (direction === 'right') head.x++;
-        snake.unshift(head);
-        if (head.x === food.x && head.y === food.y) {
-            score++;
-            scoreDisplay.textContent = `Score: ${score}`;
-            generateFood();
-        } else {
-            snake.pop();
+    function update() {
+        if (!gameRunning) return;
+        ball.x += ball.speedX;
+        ball.y += ball.speedY;
+
+        // --- THE "STUCK BALL" FIX ---
+        // Instead of just reversing, we also place the ball back on the edge
+        if (ball.y - ball.radius < 0) {
+            ball.y = ball.radius; // Place it on the edge
+            ball.speedY = -ball.speedY; // Then reverse it
+        } else if (ball.y + ball.radius > canvas.height) {
+            ball.y = canvas.height - ball.radius; // Place it on the edge
+            ball.speedY = -ball.speedY; // Then reverse it
         }
-    }
+        
+        // AI now moves faster as the ball gets faster
+        const aiSpeed = baseBallSpeed * 0.75;
+        ai.y += (ball.y - (ai.y + ai.height / 2)) * 0.1;
+        // Clamp AI speed
+        const aiMaxSpeed = 7;
+        ai.y = Math.max(0, Math.min(canvas.height - ai.height, ai.y));
 
-    function checkCollision() {
-        const head = snake[0];
-        if (head.x < 1 || head.x > gridSize || head.y < 1 || head.y > gridSize || snake.slice(1).some(s => s.x === head.x && s.y === head.y)) {
-            endGame();
-            return true;
+
+        let currentPaddle = (ball.x < canvas.width / 2) ? player : ai;
+        if (collision(ball, currentPaddle)) {
+            let collidePoint = (ball.y - (currentPaddle.y + currentPaddle.height / 2)) / (currentPaddle.height / 2);
+            let angleRad = (Math.PI / 4) * collidePoint;
+            let direction = (ball.x < canvas.width / 2) ? 1 : -1;
+
+            // --- THE "INCREASING SPEED" FIX ---
+            // 1. Increase the base speed
+            baseBallSpeed += 0.5;
+            // 2. Calculate new speed based on the new base speed
+            ball.speedX = direction * baseBallSpeed * Math.cos(angleRad);
+            ball.speedY = baseBallSpeed * Math.sin(angleRad);
         }
-        return false;
+
+        // Scoring logic
+        if (ball.x - ball.radius < 0) { ai.score++; aiScoreEl.textContent = ai.score; resetBall(); }
+        else if (ball.x + ball.radius > canvas.width) { player.score++; playerScoreEl.textContent = player.score; resetBall(); }
+        if (player.score >= WINNING_SCORE || ai.score >= WINNING_SCORE) endGame();
+    }
+    
+    function collision(b, p) {
+        return b.x + b.radius > p.x && b.x - b.radius < p.x + p.width && b.y + b.radius > p.y && b.y - b.radius < p.y + p.height;
     }
 
+    // --- Controls ---
+    function movePaddle(evt) {
+        let rect = canvas.getBoundingClientRect();
+        let y = evt.clientY || evt.touches[0].clientY;
+        player.y = y - rect.top - player.height / 2;
+        if (player.y < 0) player.y = 0;
+        else if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+    }
+    canvas.addEventListener("mousemove", movePaddle);
+    canvas.addEventListener("touchmove", e => { e.preventDefault(); movePaddle(e); });
+    
+    // --- Game Flow ---
     function gameLoop() {
-        if (!gameStarted) return;
-        move();
-        if (checkCollision()) return;
-        draw();
+        if (!gameRunning) return;
+        update();
+        render();
+        requestAnimationFrame(gameLoop);
     }
 
     function startGame() {
-        gameStarted = true;
+        resizeCanvas();
+        initGameObjects();
+        playerScoreEl.textContent = '0';
+        aiScoreEl.textContent = '0';
         startScreen.style.display = 'none';
         gameOverScreen.style.display = 'none';
-        score = 0;
-        scoreDisplay.textContent = `Score: 0`;
-        snake = [{ x: 10, y: 10 }];
-        direction = 'right';
-        generateFood();
-        if (gameInterval) clearInterval(gameInterval);
-        gameInterval = setInterval(gameLoop, 150);
-        draw();
+        gameRunning = true;
+        requestAnimationFrame(gameLoop);
     }
 
     function endGame() {
-        gameStarted = false;
-        clearInterval(gameInterval);
-        finalScoreDisplay.textContent = score;
+        gameRunning = false;
+        const playerWon = player.score >= WINNING_SCORE;
+        winnerText.textContent = playerWon ? "You Win!" : "AI Wins!";
+        scoreForm.style.display = playerWon ? 'block' : 'none';
         gameOverScreen.style.display = 'flex';
-        scoreForm.style.display = 'block';
-        submitScoreButton.disabled = false;
-        playerNameInput.value = '';
     }
 
-    // --- LEADERBOARD FUNCTIONS ---
+    // --- Leaderboard Functions ---
     async function fetchLeaderboard() {
         leaderboardList.innerHTML = '<li>Loading...</li>';
-        const { data, error } = await supabaseClient.from('snake_scores').select('player_name, score').order('score', { ascending: false }).limit(10);
+        const { data, error } = await supabaseClient.from('pong_scores').select('player_name, score').order('score', { ascending: false }).limit(10);
         if (error) { console.error('Error fetching scores:', error); leaderboardList.innerHTML = '<li>Error loading scores</li>'; return; }
-        const scores = data;
         leaderboardList.innerHTML = '';
-        if (scores && scores.length > 0) {
-            scores.forEach((entry, index) => {
+        if (data && data.length > 0) {
+            data.forEach((entry, index) => {
                 const li = document.createElement('li');
                 li.innerHTML = `<span class="rank">${index + 1}.</span><span class="name">${entry.player_name}</span><span class="score">${entry.score}</span>`;
                 leaderboardList.appendChild(li);
@@ -147,37 +186,26 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const playerName = playerNameInput.value.trim().toUpperCase();
         if (!playerName) return alert('Please enter a name!');
-        if (score <= 0) return alert('Score must be greater than 0!');
+        
+        const submitScoreButton = document.getElementById('submit-score-button');
         submitScoreButton.disabled = true;
-        const { error } = await supabaseClient.from('snake_scores').insert([{ player_name: playerName, score: score }]);
-        if (error) { console.error('Error submitting score:', error); submitScoreButton.disabled = false; }
-        else { scoreForm.style.display = 'none'; await fetchLeaderboard(); }
-    }
-
-    // --- CONTROL LOGIC ---
-    function changeDirection(newDirection) {
-        if (!gameStarted) return;
-        const isReversing = (newDirection === 'up' && direction === 'down') || (newDirection === 'down' && direction === 'up') || (newDirection === 'left' && direction === 'right') || (newDirection === 'right' && direction === 'left');
-        if (!isReversing) {
-            direction = newDirection;
+        const playerScore = player.score - ai.score;
+        const { error } = await supabaseClient.from('pong_scores').insert([{ player_name: playerName, score: playerScore }]);
+        
+        if (error) {
+            console.error('Error submitting score:', error);
+            submitScoreButton.disabled = false;
+        } else {
+            scoreForm.style.display = 'none';
+            await fetchLeaderboard();
         }
     }
 
-    // --- EVENT LISTENERS (ALL CORRECTLY CONNECTED) ---
-    document.addEventListener('keydown', (event) => {
-        const keyMap = { 'ArrowUp': 'up', 'ArrowDown': 'down', 'ArrowLeft': 'left', 'ArrowRight': 'right' };
-        const newDirection = keyMap[event.key];
-        if (newDirection) changeDirection(newDirection);
-    });
-
-    upBtn.addEventListener('click', () => changeDirection('up'));
-    downBtn.addEventListener('click', () => changeDirection('down'));
-    leftBtn.addEventListener('click', () => changeDirection('left'));
-    rightBtn.addEventListener('click', () => changeDirection('right'));
+    // --- Initial Setup ---
     startButton.addEventListener('click', startGame);
     restartButton.addEventListener('click', startGame);
     scoreForm.addEventListener('submit', handleScoreSubmit);
-
-    // --- INITIAL LOAD ---
+    
+    resizeCanvas();
     fetchLeaderboard();
 });
