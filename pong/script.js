@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Initial Setup ---
+    // --- Initial Setup --
     startButton.addEventListener('click', startGame);
     restartButton.addEventListener('click', startGame);
     scoreForm.addEventListener('submit', handleScoreSubmit);
