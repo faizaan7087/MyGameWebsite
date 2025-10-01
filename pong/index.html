@@ -11,6 +11,7 @@
 </head>
 <body>
 
+    <!-- This container holds the entire game and leaderboard -->
     <div class="container">
         <div class="game-container">
             <div class="scores">
@@ -26,7 +27,6 @@
                 </div>
                 <div id="game-over-screen" class="screen" style="display: none;">
                     <h2 id="winner-text">You Win!</h2>
-                    <!-- New Form for Score Submission -->
                     <form id="score-form">
                         <input type="text" id="player-name" placeholder="YOUR NAME" maxlength="10" autocomplete="off">
                         <button id="submit-score-button" class="btn" type="submit">Submit Score</button>
@@ -44,9 +44,15 @@
         </div>
     </div>
 
-    <!-- Load Supabase libraryFIRST -->
+    <!-- THIS IS THE NEW SCREEN that shows on mobile -->
+    <div id="rotate-screen">
+        <div class="rotate-message">
+            <h2>Please Rotate Your Device</h2>
+            <p>This game is best played in landscape mode.</p>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- THEN load our game script -->
     <script src="script.js"></script>
 </body>
 </html>

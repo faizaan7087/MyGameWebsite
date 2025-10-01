@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
     // -----------------------------
 
-    // --- DOM Elements ---
+     // --- DOM Elements ---
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const playerScoreEl = document.getElementById('player-score');
@@ -22,9 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Game State ---
     const WINNING_SCORE = 5;
+    const MAX_BALL_SPEED = 12; // NEW: A maximum speed for the ball
     let ball, player, ai;
     let gameRunning = false;
-    let baseBallSpeed = 6; // NEW: The base speed that will increase
+    let baseBallSpeed = 6;
+    let touchY = null;
+    let countdownValue = 0; // NEW: For the 3-2-1 countdown
+    let countdownInterval;
 
     // --- Canvas Sizing ---
     function resizeCanvas() {
@@ -38,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Game Initialization ---
     function initGameObjects() {
-        baseBallSpeed = 6; // Reset base speed on new game
+        baseBallSpeed = 6;
         ball = {
             x: canvas.width / 2, y: canvas.height / 2,
             radius: 8, speedX: baseBallSpeed, speedY: baseBallSpeed
@@ -54,6 +58,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Drawing ---
+    function drawCountdown() {
+        if (countdownValue > 0) {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "white";
+            ctx.font = "60px 'Press Start 2P'";
+            ctx.textAlign = "center";
+            ctx.fillText(countdownValue, canvas.width / 2, canvas.height / 2);
+        }
+    }
+
     function render() {
         ctx.fillStyle = "black";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -69,58 +84,75 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
         ctx.fillStyle = "white";
         ctx.fill();
+
+        // NEW: Draw the countdown if it's active
+        drawCountdown();
     }
     
-    // --- Game Logic ---
-    function resetBall() {
+    // --- THE FAIR RESET FIX ---
+    function startRoundWithCountdown() {
         ball.x = canvas.width / 2;
         ball.y = canvas.height / 2;
-        // THE FIX: Reset to the CURRENT base speed, not a fixed number
+        
+        // Keep the same speed, but reverse direction for the loser
         ball.speedX = -ball.speedX > 0 ? baseBallSpeed : -baseBallSpeed;
-        ball.speedY = baseBallSpeed;
+        ball.speedY = (Math.random() > 0.5 ? 1 : -1) * baseBallSpeed;
+        
+        countdownValue = 3;
+        if (countdownInterval) clearInterval(countdownInterval);
+
+        countdownInterval = setInterval(() => {
+            countdownValue--;
+            if (countdownValue <= 0) {
+                clearInterval(countdownInterval);
+                gameRunning = true; // Resume game logic
+            }
+        }, 1000); // 1 second interval
     }
 
     function update() {
+        // Don't move anything if the countdown is active
         if (!gameRunning) return;
+
         ball.x += ball.speedX;
         ball.y += ball.speedY;
 
-        // --- THE "STUCK BALL" FIX ---
-        // Instead of just reversing, we also place the ball back on the edge
-        if (ball.y - ball.radius < 0) {
-            ball.y = ball.radius; // Place it on the edge
-            ball.speedY = -ball.speedY; // Then reverse it
-        } else if (ball.y + ball.radius > canvas.height) {
-            ball.y = canvas.height - ball.radius; // Place it on the edge
-            ball.speedY = -ball.speedY; // Then reverse it
-        }
+        if (ball.y - ball.radius < 0) { ball.y = ball.radius; ball.speedY = -ball.speedY; }
+        else if (ball.y + ball.radius > canvas.height) { ball.y = canvas.height - ball.radius; ball.speedY = -ball.speedY; }
         
-        // AI now moves faster as the ball gets faster
-        const aiSpeed = baseBallSpeed * 0.75;
         ai.y += (ball.y - (ai.y + ai.height / 2)) * 0.1;
-        // Clamp AI speed
-        const aiMaxSpeed = 7;
         ai.y = Math.max(0, Math.min(canvas.height - ai.height, ai.y));
-
 
         let currentPaddle = (ball.x < canvas.width / 2) ? player : ai;
         if (collision(ball, currentPaddle)) {
             let collidePoint = (ball.y - (currentPaddle.y + currentPaddle.height / 2)) / (currentPaddle.height / 2);
             let angleRad = (Math.PI / 4) * collidePoint;
             let direction = (ball.x < canvas.width / 2) ? 1 : -1;
+            
+            // Increase base speed but cap it
+            baseBallSpeed = Math.min(MAX_BALL_SPEED, baseBallSpeed + 0.3);
 
-            // --- THE "INCREASING SPEED" FIX ---
-            // 1. Increase the base speed
-            baseBallSpeed += 0.5;
-            // 2. Calculate new speed based on the new base speed
             ball.speedX = direction * baseBallSpeed * Math.cos(angleRad);
             ball.speedY = baseBallSpeed * Math.sin(angleRad);
         }
 
         // Scoring logic
-        if (ball.x - ball.radius < 0) { ai.score++; aiScoreEl.textContent = ai.score; resetBall(); }
-        else if (ball.x + ball.radius > canvas.width) { player.score++; playerScoreEl.textContent = player.score; resetBall(); }
-        if (player.score >= WINNING_SCORE || ai.score >= WINNING_SCORE) endGame();
+        if (ball.x - ball.radius < 0) { 
+            ai.score++; 
+            aiScoreEl.textContent = ai.score;
+            gameRunning = false; // Pause the game
+            startRoundWithCountdown(); // Start the countdown
+        }
+        else if (ball.x + ball.radius > canvas.width) { 
+            player.score++; 
+            playerScoreEl.textContent = player.score;
+            gameRunning = false; // Pause the game
+            startRoundWithCountdown(); // Start the countdown
+        }
+        
+        if (player.score >= WINNING_SCORE || ai.score >= WINNING_SCORE) {
+            endGame();
+        }
     }
     
     function collision(b, p) {
@@ -128,19 +160,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Controls ---
-    function movePaddle(evt) {
+    function movePaddleWithMouse(evt) {
         let rect = canvas.getBoundingClientRect();
-        let y = evt.clientY || evt.touches[0].clientY;
-        player.y = y - rect.top - player.height / 2;
+        player.y = evt.clientY - rect.top - player.height / 2;
+        clampPaddlePosition();
+    }
+    function handleTouchStart(evt) { if (evt.touches.length > 0) touchY = evt.touches[0].clientY; }
+    function handleTouchMove(evt) {
+        evt.preventDefault();
+        if (touchY === null || evt.touches.length === 0) return;
+        let newY = evt.touches[0].clientY;
+        let deltaY = newY - touchY;
+        touchY = newY;
+        player.y += deltaY;
+        clampPaddlePosition();
+    }
+    function handleTouchEnd() { touchY = null; }
+    function clampPaddlePosition() {
         if (player.y < 0) player.y = 0;
         else if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
     }
-    canvas.addEventListener("mousemove", movePaddle);
-    canvas.addEventListener("touchmove", e => { e.preventDefault(); movePaddle(e); });
+    canvas.addEventListener("mousemove", movePaddleWithMouse);
+    canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
+    canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+    canvas.addEventListener("touchend", handleTouchEnd);
     
     // --- Game Flow ---
     function gameLoop() {
-        if (!gameRunning) return;
         update();
         render();
         requestAnimationFrame(gameLoop);
@@ -153,12 +199,14 @@ document.addEventListener('DOMContentLoaded', () => {
         aiScoreEl.textContent = '0';
         startScreen.style.display = 'none';
         gameOverScreen.style.display = 'none';
-        gameRunning = true;
+        gameRunning = false; // Don't start immediately
+        startRoundWithCountdown(); // Start with a countdown
         requestAnimationFrame(gameLoop);
     }
 
     function endGame() {
         gameRunning = false;
+        if(countdownInterval) clearInterval(countdownInterval);
         const playerWon = player.score >= WINNING_SCORE;
         winnerText.textContent = playerWon ? "You Win!" : "AI Wins!";
         scoreForm.style.display = playerWon ? 'block' : 'none';
@@ -186,12 +234,10 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const playerName = playerNameInput.value.trim().toUpperCase();
         if (!playerName) return alert('Please enter a name!');
-        
         const submitScoreButton = document.getElementById('submit-score-button');
         submitScoreButton.disabled = true;
         const playerScore = player.score - ai.score;
         const { error } = await supabaseClient.from('pong_scores').insert([{ player_name: playerName, score: playerScore }]);
-        
         if (error) {
             console.error('Error submitting score:', error);
             submitScoreButton.disabled = false;
@@ -201,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Initial Setup --
+    // --- Initial Setup ---
     startButton.addEventListener('click', startGame);
     restartButton.addEventListener('click', startGame);
     scoreForm.addEventListener('submit', handleScoreSubmit);
