@@ -3,37 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Retro Snake Game</title>
+    <title>Pixel Paddle</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
+
     <div class="container">
         <div class="game-container">
-            <div class="header">
-                <h1>Retro Snake</h1>
-                <div id="score-display">Score: 0</div>
+            <div class="scores">
+                <div id="player-score">0</div>
+                <div id="ai-score">0</div>
             </div>
-            
-            <!-- THE GAME BOARD AND SCREENS ARE NOW SIBLINGS -->
-            <div class="game-board-wrapper">
-                <div id="game-board">
-                    <!-- The snake and food will be drawn here by JS -->
-                </div>
-                <!-- THE SCREENS ARE NOW OUTSIDE THE GAME BOARD -->
+            <div class="canvas-wrapper">
+                <canvas id="gameCanvas"></canvas>
                 <div id="start-screen" class="screen">
-                    <h2>Retro Snake</h2>
-                    <p>Use arrows or touch controls to play.</p>
+                    <h2>Pixel Paddle</h2>
+                    <p>First to 5 points wins!</p>
                     <button id="start-button" class="btn">Start Game</button>
                 </div>
                 <div id="game-over-screen" class="screen" style="display: none;">
-                    <h2>Game Over</h2>
-                    <p>Final Score: <span id="final-score">0</span></p>
+                    <h2 id="winner-text">You Win!</h2>
+                    <!-- New Form for Score Submission -->
                     <form id="score-form">
                         <input type="text" id="player-name" placeholder="YOUR NAME" maxlength="10" autocomplete="off">
-                        <button id="submit-score-button" class="btn" type="submit">Submit</button>
+                        <button id="submit-score-button" class="btn" type="submit">Submit Score</button>
                     </form>
                     <button id="restart-button" class="btn">Play Again</button>
                 </div>
@@ -43,25 +39,14 @@
         <div class="leaderboard-container">
             <h2>High Scores</h2>
             <ul id="leaderboard-list">
-                <!-- Scores load here -->
+                <!-- Scores will be loaded here -->
             </ul>
         </div>
     </div>
 
-    <div id="mobile-controls">
-        <div class="control-row">
-            <button id="up-btn" class="control-btn">▲</button>
-        </div>
-        <div class="control-row">
-            <button id="left-btn" class="control-btn">◄</button>
-            <button id="down-btn" class="control-btn">▼</button>
-            <button id="right-btn" class="control-btn">►</button>
-        </div>
-    </div>
-
-    <!-- Script tags remain the same -->
+    <!-- Load Supabase library FIRST -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- THEN load our game script -->
     <script src="script.js"></script>
 </body>
 </html>
-
