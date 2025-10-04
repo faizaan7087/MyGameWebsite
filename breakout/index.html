@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Block Blitz</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="game-container">
+            <div class="hud">
+                <div id="score">Score: 0</div>
+                <div id="lives">Lives: 3</div>
+            </div>
+            <div class="canvas-wrapper">
+                <canvas id="gameCanvas"></canvas>
+                <div id="start-screen" class="screen">
+                    <h2>Block Blitz</h2>
+                    <button id="start-button" class="btn">Start Game</button>
+                </div>
+                <div id="game-over-screen" class="screen" style="display: none;">
+                    <h2 id="game-over-text">Game Over</h2>
+                    <form id="score-form" style="display: none;">
+                        <input type="text" id="player-name" placeholder="YOUR NAME" maxlength="10" autocomplete="off">
+                        <button id="submit-score-button" class="btn" type="submit">Submit</button>
+                    </form>
+                    <button id="restart-button" class="btn">Play Again</button>
+                </div>
+            </div>
+        </div>
+        <div class="leaderboard-container">
+            <h2>High Scores</h2>
+            <ul id="leaderboard-list">
+                <!-- Scores load here -->
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #1a1a1a;
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    overflow: none;
+}
+
+.container {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    padding: 20px;
+}
+
+#game-wrapper {
+    position: relative;
+    width: 375px;
+    height: 667px;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+}
+
+canvas {
+    background-color: #0c0c14;
+    border: 3px solid #00f0ff;
+    border-radius: 8px;
+    display: block;
+}
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+    border-radius: 8px;
+}
+
+.hidden { display: none; }
+
+button {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    padding: 15px 30px;
+    border: 2px solid #00f0ff;
+    background-color: transparent;
+    color: #00f0ff;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+button:hover {
+    background-color: #00f0ff;
+    color: #1a1a1a;
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.7);
+}
+
+h1 { font-size: 40px; color: #00f0ff; margin-bottom: 20px; line-height: 1.2; }
+h2 { font-size: 24px; margin-bottom: 20px; }
+p { font-size: 14px; margin-bottom: 30px; }
+
+#score {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 20px;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+}
+
+.leaderboard-container {
+    width: 350px;
+    background-color: #0c0c14;
+    border: 3px solid #00f0ff;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.leaderboard-container h2 { text-align: center; }
+
+#leaderboard-list { list-style: none; padding: 0; }
+#leaderboard-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
+    font-size: 14px;
+}
+#leaderboard-list li .rank { width: 40px; }
+#leaderboard-list li .name { flex-grow: 1; }
+
+#score-form { margin-top: 20px; }
+#score-form input {
+    width: 100%;
+    padding: 10px;
+    background: #1a1a1a;
+    border: 1px solid #00f0ff;
+    color: white;
+    font-family: 'Press Start 2P';
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* --- MOBILE STYLES --- */
+@media (max-width: 768px) {
+    body {
+        /* Allow scrolling on mobile when leaderboard appears */
+        height: auto; 
+        padding: 20px 0;
+    }
+    .container { 
+        flex-direction: column; 
+        align-items: center; 
+    }
+    .leaderboard-container {
+        display: none; /* Hide by default on mobile */
+        margin-top: 20px;
+    }
+    /* This class will be added via JS to show the leaderboard on game over */
+    .container.mobile-game-over .leaderboard-container {
+        display: block;
+    }
+}

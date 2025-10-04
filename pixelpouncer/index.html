@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Pouncer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div class="container">
+        <div id="game-wrapper">
+            <canvas id="gameCanvas" width="375" height="667"></canvas>
+            <div id="score">Score: 0</div>
+            <div id="start-screen" class="screen">
+                <h1>Pixel Pouncer</h1>
+                <p>Use Arrow Keys or Mouse/Touch to move. Jump as high as you can!</p>
+                <button id="start-button">Start Game</button>
+            </div>
+            <div id="game-over-screen" class="screen hidden">
+                <h2 id="game-over-text">Game Over</h2>
+                <p>Final Score: <span id="final-score">0</span></p>
+                <form id="score-form">
+                    <input type="text" id="player-name" placeholder="ENTER YOUR NAME" maxlength="10">
+                    <button type="submit">Save Score</button>
+                </form>
+                <button id="restart-button" style="margin-top: 20px;">Play Again</button>
+            </div>
+        </div>
+
+        <div class="leaderboard-container">
+            <h2>Leaderboard</h2>
+            <ul id="leaderboard-list">
+                <li>Loading...</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
